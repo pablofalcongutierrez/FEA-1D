@@ -7,6 +7,7 @@ donde se añaden dos nodos, un elemento lineal y una articulación.
 Para asi obtener la matriz de rigidez global y el vector de cargas global.
 '''
 
+
 # Se crea el modelo
 model = Modelo()
 
