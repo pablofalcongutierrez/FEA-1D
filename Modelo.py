@@ -131,6 +131,10 @@ class Modelo:
             self.f_G[e.n2.id_global-1] += f_e[1]
 
     def info(self):
+        '''
+        Información general del modelo creado
+        :return:
+        '''
         print("Informacion modelo")
         print("Número de nodos: ", self.n_nodos)
         print("Número de elementos: ", self.n_elementos)
