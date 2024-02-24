@@ -1,50 +1,40 @@
-import numpy as np
-
+from Modelo import Modelo
 from Elementos import *
-from func_forma import *
-from vector_cargas import *
 
-E = 210*1e9     # Pa
-A = 1           # m2
-L = 2           # m
+'''
+Script que realiza la prueba de la creación de un modelo
+donde se añaden dos nodos, un elemento lineal y una articulación.
+Para asi obtener la matriz de rigidez global y el vector de cargas global.
+'''
 
-F = 10e3        # N
-n = 10e3        # N/m
+# Se crea el modelo
+model = Modelo()
 
-J = J_1D_LINEAR(L)
+# Se definen las constantes
+E = 210e9
+A = 0.01
+n_x = 1000
 
-# Se generan el nodo
-k = matriz_rigidez_elemental_1D_LINEAL(E, A, L)
-f = vector_cargas_nodales_1D_LINEAL(n, L)
+# Se añaden los nodos
+model.Add_nodo(0)
+model.Add_nodo(1)
 
-# Se generan las condiciones de contorno
-# El nudo 1 está articulado
-k[0,0] = 1
-k[1,0] = 0
-k[0,1] = 0
-f[0] = 0
+# Se añaden los elementos
+model.Add_elemento(Elemento.LINEAL, [1, 2], E, A, n_x)
 
-vector_desplazamientos_elemento = np.linalg.inv(k) @ f
-print("Matriz de rigidez")
-print(k)
-print("Inversa de matriz de rigidez")
-print(np.linalg.inv(k))
-print("Vector de desplazamientos")
-print(vector_desplazamientos_elemento)
+# Se añaden las articulaciones
+model.Add_articulacion(1)
 
-print(f"Desplazamiento en nodo 1 => u_x = {func_forma_1D_LINEAR(-1) @ vector_desplazamientos_elemento}")
-print(f"Desplazamiento en nodo 2 => u_x = {func_forma_1D_LINEAR(1) @ vector_desplazamientos_elemento}")
+# Se ensambla la matriz de rigidez global
+model.Ensambla_K_G()
 
+# Se ensambla el vector de cargas global
+model.Ensambla_f_G()
+
+# Se imprime la matriz de rigidez global
+print(model.K_G)
 print()
 
-print(f"Deformación en nodo 1 => eps_x = {func_derivada_forma_1D_LINEAR(-1) @ vector_desplazamientos_elemento}")
-print(f"Deformación en nodo 2 => eps_x = {func_derivada_forma_1D_LINEAR(1) @ vector_desplazamientos_elemento}")
-
+# Se imprime el vector de cargas global
+print(model.f_G)
 print()
-
-print(f"Tensión en nodo 1 => eps_x = {E*A*func_derivada_forma_1D_LINEAR(-1) @ vector_desplazamientos_elemento}")
-print(f"Tensión en nodo 2 => eps_x = {E*A*func_derivada_forma_1D_LINEAR(1) @ vector_desplazamientos_elemento}")
-
-
-
-
