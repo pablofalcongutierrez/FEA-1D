@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-from MEF_1D import *
+from FEA_1D import *
 
 """
 Test_1.py

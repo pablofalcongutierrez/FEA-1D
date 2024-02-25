@@ -1,12 +1,3 @@
-"""
-Script donde se definen las matrices de rigidez elementales.
-
-Funciones:
-----------
-- matriz_rigidez_elemental_1D_LINEAL(E, A, L): Calcula la matriz de rigidez para un elemento finito lineal en 1D.
-"""
-
-
 import numpy as np
 from enum import Enum
 

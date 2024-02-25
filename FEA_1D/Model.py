@@ -1,6 +1,4 @@
-from MEF_1D.Node import *
-from MEF_1D.Elements import *
-
+from FEA_1D import *
 
 class Model:
     def __init__(self):
