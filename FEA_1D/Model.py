@@ -230,6 +230,9 @@ class Model:
         
         print("Model information")
         print("Number of nodes: ", self.n_nodes)
+        # All the noder are printed
+        for id, n in self.nodes.items():
+            print("\t- Node ", id, ": ", n.x_global)
         print("Number of elements: ", self.n_elements)
         print("Number of joints: ", self.list_joints)
         print()

@@ -18,8 +18,8 @@ structural problems.
   - [ ] Quadratic
 
 - [ ] **Boundary Conditions:**
-  - [x] Define Joints
-    - [ ] **Define Displacements:**
+    - [x] Define Joints
+    - [ ] Define Displacements:
     - [ ] Define Forces
 
 - [ ] **Mesh Generation:**
