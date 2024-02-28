@@ -1,4 +1,4 @@
-class beam:
+class Beam:
     """
     A class to define a beam element.
 
@@ -12,15 +12,18 @@ class beam:
     In the case that the user define only nodes with the points of the beam, the mesh would have
     a very low precision.
     """
-    def __init__(self, nodes, material, section):
+    def __init__(self, nodes, material, section, n_x):
         """
         Constructor of the class beam
 
-        :param nodes:
-        :param material:
-        :param section:
+        :param nodes: (list) List of nodes of the beam. This will be auxiliary nodes.
+        :param material: (Material) Material of the beam
+        :param section: (Section) Section of the beam
+        :param n_x: (float) Load per unit length
         """
 
         self.nodes = nodes
         self.material = material
         self.section = section
+        self.n_x = n_x
+

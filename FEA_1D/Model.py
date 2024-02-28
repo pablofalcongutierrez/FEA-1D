@@ -1,12 +1,20 @@
+import math
+
 from FEA_1D import *
+from FEA_1D.Beam import Beam
 
 class Model:
     def __init__(self):
         self.nodes = {}
         self.elements = {}
+        self.aux_nodes = {}
+        self.beams = {}
 
+        # Se incializan a cero el número de componentes del modelo
         self.n_nodes = 0
+        self.n_aux_nodes = 0
         self.n_elements = 0
+        self.n_beams = 0
 
         # Se indicara el nodo que esté articulado
         self.list_joints = []
@@ -17,8 +25,11 @@ class Model:
         # Vector de cargas global
         self.f_G = None
 
+        # Parameter of the model that indicates if the model is solved
+        self.solved = False
 
-    def Add_node(self, x):
+
+    def add_node(self, x):
         '''
         A node is defined by its position in space
 
@@ -32,8 +43,58 @@ class Model:
         n = Node(x, self.n_nodes)
         self.nodes[self.n_nodes] = n
 
+        # Update the parameter of the model that indicates if the model is unsolved
+        self.solved = False
 
-    def Add_elemento(self, tipo_Elemento, nodos_elemento, E, A, n_x):
+
+    def add_aux_node(self, x):
+        '''
+        An auxiliary node is defined by its position in space
+
+        :param x: (float) Position in space in coordinate x
+        :return:
+        '''
+        # The number of nodes is updated
+        self.n_aux_nodes += 1
+
+        # A node is created and stored
+        n = aux_node(x, self.n_aux_nodes)
+        self.aux_nodes[self.n_aux_nodes] = n
+
+        # Update the parameter of the model that indicates if the model is unsolved
+        self.solved = False
+
+
+    def add_beam(self, aux_nodes, material, section, n_x):
+        """
+        A beam is added to the model
+
+        :param aux_nodes: (list) List of nodes of the beam. This will be auxiliary nodes.
+        :param material: (Material) Material of the beam
+        :param section: (Section) Section of the beam
+        :param n: (float) Load per unit length
+        :return: None
+        """
+
+        # The global nodes of the element are obtained
+        id_global_n1 = aux_nodes[0]
+        id_global_n2 = aux_nodes[1]
+
+        # The node class associated with the nodes is obtained
+        n1 = self.aux_nodes[id_global_n1]
+        n2 = self.aux_nodes[id_global_n2]
+
+        self.n_beams += 1
+
+        # A beam is created and stored
+        b = Beam([n1, n2], material, section, n_x)
+        self.beams[self.n_beams] = b
+
+        # Update the parameter of the model that indicates if the model is unsolved
+        self.solved = False
+
+
+    def add_elemento(self, tipo_Elemento, nodos_elemento, E, A, n_x):
         '''
         An element is added to the model
 
@@ -71,9 +132,12 @@ class Model:
         elif Element.CUADRATIC == tipo_Elemento:
             raise NotImplementedError("Unimplemented method for quadratic elements.")
 
+        # Update the parameter of the model that indicates if the model is unsolved
+        self.solved = False
 
 
-    def Add_articulacion(self, id_node):
+
+    def add_articulacion(self, id_node):
         '''
         A joint is added to the model
         
@@ -91,6 +155,83 @@ class Model:
         
         # The node is added to the list of joints
         self.list_joints.append(id_node)
+
+        # Update the parameter of the model that indicates if the model is unsolved
+        self.solved = False
+
+
+    def mesh(self, maximum_length):
+        '''
+        The model is meshed
+
+        :param maximum_length: (float) Maximum length of the elements
+        :return: None
+        '''
+        # The elements are traversed
+        for id, beam in self.beams.items():
+
+            # The element is meshed
+            distance = abs(beam.nodes[1].x_global - beam.nodes[0].x_global)
+
+            # The number of elements between two auxiliary nodes is calculated
+            n_elements = math.ceil(distance / maximum_length)
+
+            length_element = distance / n_elements
+
+            # Add intermediate nodes
+            self._Add_intermediate_nodes(beam.nodes[0], length_element, n_elements)
+
+            # Define the elements of the model
+            for i in range(1, n_elements+1):
+                n1 = self.nodes[i]
+                n2 = self.nodes[i + 1]
+
+                self.add_elemento(Element.LINEAR, [n1.id_global, n2.id_global], beam.material.E, beam.section.A, beam.n_x)
+
+        # Update the parameter of the model that indicates if the model is unsolved
+        self.solved = False
+
+
+    def _Add_intermediate_nodes(self, n1, length_element, n_elements):
+        '''
+        Intermediate nodes are added between two nodes
+
+        :param n1: (Node) Node 1. Initial node
+        :param n2: (Node) Node 2. Final node
+        :param length_element: (float) Length of the element
+        :param n_elements: (int) Number of elements
+        :return: None
+        '''
+
+
+
+        # The nodes are created <-> 1 node more than the number of elements
+        for i in range(n_elements + 1):
+            x = n1.x_global + i * length_element
+
+            # If the node already exists, it is not added
+            if self.bool_created_node(x):
+                pass
+            else:
+                self.add_node(x)
+
+
+    def bool_created_node(self, x):
+        '''
+        Check if a node is created
+
+        :param x: (float) Position in space in coordinate x
+        :return: (bool) True if the node is created
+        '''
+
+        for id, node in self.nodes.items():
+            if node == x:
+                return True
+
+        return False
+
+
+
 
 
     def Assemble_K_G(self):
@@ -222,17 +363,15 @@ class Model:
 
 
     def info(self):
-        '''
-        General information of the created model
-        
+        """
+        Information of the model
+
         :return:
-        '''
-        
+        """
+
         print("Model information")
         print("Number of nodes: ", self.n_nodes)
-        # All the noder are printed
-        for id, n in self.nodes.items():
-            print("\t- Node ", id, ": ", n.x_global)
         print("Number of elements: ", self.n_elements)
-        print("Number of joints: ", self.list_joints)
-        print()
+        print("Number of beams: ", self.n_beams)
+        print("Number of joints: ", len(self.list_joints))
+        print("Solved: ", self.solved)
