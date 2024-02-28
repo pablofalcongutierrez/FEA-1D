@@ -17,8 +17,8 @@ class beam:
         Constructor of the class beam
 
         :param nodes:
-        :param material:
-        :param section:
+        :param material: (Material) Class to define the material of the beam
+        :param section:(Section) Class to define the section of the beam
         """
 
         self.nodes = nodes
