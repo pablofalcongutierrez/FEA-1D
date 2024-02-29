@@ -1,7 +1,7 @@
 import math
 
 from FEA_1D import *
-from FEA_1D.Beam import Beam
+from FEA_1D.Beam import *
 
 class Model:
     def __init__(self):
@@ -17,7 +17,12 @@ class Model:
         self.n_beams = 0
 
         # Se indicara el nodo que esté articulado
+        self.list_joints_AUX = []
         self.list_joints = []
+
+        # The vector of punctual loads is created
+        self.punctual_forces_AUX = {}
+        self.punctual_forces = {}
 
         # Matriz de rigidez global
         self.K_G = None
@@ -137,24 +142,43 @@ class Model:
 
 
 
-    def add_articulacion(self, id_node):
+    def add_joint(self, id_aux_node):
         '''
         A joint is added to the model
         
-        :param id_node: (int) Id of the node
+        :param id_aux_node: (int) Id of the node
         :return: None
         '''
         # It is checked that the node exists
-        if id_node not in self.nodes:
+        if id_aux_node not in self.aux_nodes:
             raise ValueError("The node does not exist")
 
         else:
             # It is checked that the node is not already articulated
-            if id_node in self.list_joints:
+            if id_aux_node in self.list_joints:
                 raise ValueError("The node is already articulated")
         
         # The node is added to the list of joints
-        self.list_joints.append(id_node)
+        self.list_joints_AUX.append(id_aux_node)
+
+        # Update the parameter of the model that indicates if the model is unsolved
+        self.solved = False
+
+
+    def add_puntual_load(self, id_aux_node, F):
+        '''
+        A punctual load is added to the model
+
+        :param id_aux_node: (int) Id of the auxiliary node
+        :param F: (float) Punctual load
+        :return: None
+        '''
+        # It is checked that the node exists
+        if id_aux_node not in self.aux_nodes:
+            raise ValueError("The node does not exist")
+
+        # The load is added to the node
+        self.punctual_forces[id_aux_node] = F
 
         # Update the parameter of the model that indicates if the model is unsolved
         self.solved = False
@@ -187,6 +211,32 @@ class Model:
                 n2 = self.nodes[i + 1]
 
                 self.add_elemento(Element.LINEAR, [n1.id_global, n2.id_global], beam.material.E, beam.section.A, beam.n_x)
+
+
+        # All the nodes have to be traversed to add the joints that have defined in the auxiliary nodes
+        for id_aux_node in self.list_joints_AUX:
+            # The coordinates of the joint are obtained
+            x_joint = self.aux_nodes[id_aux_node].x_global
+
+            # All the nodes are traversed for obtaining the node that belongs to the joint
+            for id, node in self.nodes.items():
+
+                # if exists a node in the same position of the joint, the id of the node is stored
+                if node == x_joint:
+                    self.list_joints.append(node.id_global)
+
+
+        # All the nodes have to be traversed to add the punctual loads that have defined in the auxiliary nodes
+        for id_aux_node, F in self.punctual_forces.items():
+            # The coordinates of the joint are obtained
+            x_force = self.aux_nodes[id_aux_node]
+
+            # All the nodes are traversed for obtaining the node that belongs to the joint
+            for id, node in self.nodes.items():
+
+                # if exists a node in the same position of the joint, the id of the node is stored
+                if node == x_force:
+                    self.punctual_forces[id] = F
 
         # Update the parameter of the model that indicates if the model is unsolved
         self.solved = False
@@ -265,6 +315,8 @@ class Model:
         # The global load vector is created
         self.f_G = np.zeros((self.n_nodes, 1))
 
+
+
         # The elements are traversed
         for id, e in self.elements.items():
             
@@ -274,6 +326,11 @@ class Model:
             # The global load vector is assembled
             self.f_G[e.n1.id_global-1] += f_e[0]
             self.f_G[e.n2.id_global-1] += f_e[1]
+
+
+        # The punctual loads are added to the global load vector
+        for id, F in self.punctual_forces.items():
+            self.f_G[id-1] += F
 
 
     def Boundary_Conditions(self):
@@ -301,65 +358,39 @@ class Model:
             self.f_G_cc[joint_node-1] = 0
 
 
-    def _delta_G(self):
+    def Solve(self):
         '''
-        The displacements are calculated
-        
-        :return:
+        The model is solved
+
+        :return: None
         '''
-        # The global stiffness matrix with boundary conditions is calculated
+
+        # The global stiffness matrix is assembled
+        self.Assemble_K_G()
+
+        # The global load vector is assembled
+        self.Assemble_f_G()
+
+        # The boundary conditions are imposed
         self.Boundary_Conditions()
 
         # The displacements are calculated
         self.delta = np.linalg.solve(self.K_G_cc, self.f_G_cc)
 
+        # print the stiffness matrix
+        print(self.K_G_cc)
 
-        return self.delta
+        # print the load vector
+        print(self.f_G_cc)
 
+        # print the displacements
+        print(self.delta)
 
-    def calculate_delta(self, x):
-        '''
-        Displacement at a point x
-        
-        :param x: (float) Position x
-        :return: (float) Displacement
-        '''
-        
-        # The displacements are calculated
-        delta = 0
-        delta_G = self._delta_G()
-        _delta_e = np.zeros((2, 1))
-        for id, e in self.elements.items():
+        # The stresses are calculated
+        self.sigma = self._sigma_G(self.delta)
 
-            chi_element = e.chi_in_x(x)
-
-            # Desplazamientos de los nodos de cada elemento
-            _delta_e[0] = delta_G[e.n1.id_global-1]
-            _delta_e[1] = delta_G[e.n2.id_global-1]
-
-            delta += e.u(_delta_e, chi_element)
-
-        return delta
-
-
-    def _sigma_G(self, delta_G):
-        '''
-        The stresses are calculated
-        
-        :param delta_G: (np.array) Displacements
-        :return: (np.array) Stresses
-        '''
-        
-        # A vector of stresses is created
-        sigma = np.zeros((self.n_elements, 1))
-
-        # The elements are traversed
-        for id, e in self.elements.items():
-            
-            # The stresses are calculated
-            sigma[id-1] = e._sigma(delta_G)
-
-        return sigma
+        # The model is solved
+        self.solved = True
 
 
     def info(self):
@@ -370,8 +401,11 @@ class Model:
         """
 
         print("Model information")
-        print("Number of nodes: ", self.n_nodes)
-        print("Number of elements: ", self.n_elements)
-        print("Number of beams: ", self.n_beams)
-        print("Number of joints: ", len(self.list_joints))
-        print("Solved: ", self.solved)
+        print("\t- Number of nodes: ", self.n_nodes)
+        print("\t- Number of elements: ", self.n_elements)
+        print("\t- Number of beams: ", self.n_beams)
+        print("\t- Number of joints: ", len(self.list_joints))
+
+        print()
+        print("Status of the model")
+        print("\t- Solved: ", self.solved)

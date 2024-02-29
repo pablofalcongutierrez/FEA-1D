@@ -1,3 +1,6 @@
+# The same model as in Test_1.py is created.
+# The only difference is that the model is meshed with the number of elements
+
 from FEA_1D import *
 
 
@@ -5,24 +8,30 @@ from FEA_1D import *
 model = Model()
 
 # The material is defined
-material = Material("Steel", 210e3)
+material = Material("Steel", 200e3)
 
 # The section is defined
 section = Section(100)
 
 # The loads is defined
-n_x = 1000
+n_x = 0
 
 # The nodes are added
 model.add_aux_node(0)
-model.add_aux_node(10)
+model.add_aux_node(100)
 
 # The beam is added
-model.add_beam([1, 2], material, section, 0)
+model.add_beam([1, 2], material, section, n_x)
+
+# The joints are added
+model.add_joint(1)
+
+model.add_puntual_load(2, 10000)
 
 # The model is meshed
-model.mesh(3)
+model.mesh(50)
 
-model.info()
+model.Solve()
+
 
 
