@@ -21,8 +21,8 @@ class element_1D_LINEAR:
         self.n2 = n2
 
         # Geometry
-        self.x1 = n1.x_global
-        self.x2 = n2.x_global
+        self.x1 = n1.x
+        self.x2 = n2.x
         self.L = self.x2 - self.x1
 
         # Properties of the node

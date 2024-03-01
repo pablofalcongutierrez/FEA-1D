@@ -14,24 +14,25 @@ material = Material("Steel", 200e3)
 section = Section(100)
 
 # The loads is defined
-n_x = 0
+n_x = 1000
 
 # The nodes are added
-model.add_aux_node(0)
+model.add_aux_node(0, u=0)
 model.add_aux_node(100)
 
 # The beam is added
-model.add_beam([1, 2], material, section, n_x)
-
-# The joints are added
-model.add_joint(1)
-
-model.add_puntual_load(2, 10000)
+model.add_beam([0, 1], material, section, n_x)
 
 # The model is meshed
-model.mesh(50)
+model.mesh(1)
+
+model.info()
 
 model.Solve()
+
+
+
+# model.Solve()
 
 
 

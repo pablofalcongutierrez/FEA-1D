@@ -5,38 +5,32 @@ class Node:
     Class that defines a node in a 1D finite element problem
     '''
 
-    def __init__(self, x_global, id):
+    def __init__(self, x, id, F=None, u=None):
         '''
         Constructor of the class Node
 
-        :param x_global:
-        :param id:
+        :param x: (float) Coordinate of the node
+        :param id: (int) Identifier of the node
+        :param F: (float) Force in the node. It is None by default
+        :param u: (float) displacement in the node. It is None by default
         '''
 
         # The global coordinate is defined
-        self.x_global = x_global
+        self.x = x
         self.id_global = id
+        self.F = F
+        self.u = u
 
-        # The element to which it belongs is defined
-        self.id_elmemto = None
 
     # Especial method to compare a node with a coordinate to now if the node is already created
     def __eq__(self, other):
-        return self.x_global == other
+        return self.x == other
 
 
-class aux_node:
-    """
-    Class that defines an auxiliary node. The principal difference with the Node class is that the
-    auxiliary node is defined for the construction of a beam.
-    """
-    def __init__(self, x_global, id_aux):
-        """
-        Constructor of the class aux_node
-
-        :param x_global: (float) Coordinate of the node
-        :param id_aux: (int) Identifier of the node
-        """
-        self.x_global = x_global
-        self.id_aux = id_aux
+    # It is necessary to define the method __copy__ to copy the properties of the node
+    # It will be used when the user wants to copy the properties of an axuliary node to a normal node
+    def __copy__(self):
+        # Create a new instance of the class with the same properties
+        new_instance = type(self)(self.x, self.id_global, self.F, self.u)
+        return new_instance
 
