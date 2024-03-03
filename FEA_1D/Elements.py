@@ -91,39 +91,6 @@ class element_1D_LINEAR:
         return 1 / self._J() * np.array([[dN1, dN2]])
 
 
-    def _epsilon(self, _delta):
-        """
-        Vector of the deformations of the element
-
-        :param _delta: Vector of the displacements of the node
-        :return: (np.array) Vector of deformations
-        """
-
-        return self._B() @ _delta
-
-
-    def _sigma(self, _delta):
-        '''
-        Matrix of the stresses of the displacements of the element
-
-        :param _delta: Vector of the displacements of the node
-        :return: (np.array) Vector of stresses
-        '''
-
-        return self._epsilon(_delta) * self.E
-
-
-    def _F(self, _delta):
-        '''
-        Vector of forces of the nodes
-
-        :param _delta: Vector of the displacements of the node
-        :return: (np.array) Vector of forces
-        '''
-
-        return self._sigma(_delta) * self.A
-
-
     def _D(self):
         '''
         Elastic matrix, for 1D it becomes a scalar
@@ -169,10 +136,6 @@ class element_1D_LINEAR:
         :return: (np.array) Displacement
         '''
 
-        print("delta total:")
-        print(delta)
-        print()
-
         # The vector of displacements of the nodes of the element is obtained
         delta_element = self.delta_element(delta)
 
@@ -180,7 +143,65 @@ class element_1D_LINEAR:
             return self._N(chi) @ delta_element
 
         else:
-            return 0
+            return None
+
+
+    def epsilon_chi(self, delta, chi):
+        '''
+        Strain in chi coordinate
+
+        :param delta: (np.array) Displacement of the nodes of the element
+        :param chi: (float) Coordinate in chi
+        :return: (np.array) Strain
+        '''
+
+        # The vector of displacements of the nodes of the element is obtained
+        delta_element = self.delta_element(delta)
+
+        if -1 <= chi <= 1:
+            return self._B() @ delta_element
+
+        else:
+            return None
+
+
+    def sigma_chi(self, delta, chi):
+        '''
+        Stress in chi coordinate
+
+        :param delta: (np.array) Displacement of the nodes of the element
+        :param chi: (float) Coordinate in chi
+        :return: (np.array) Stress
+        '''
+
+        # The vector of displacements of the nodes of the element is obtained
+        delta_element = self.delta_element(delta)
+
+        if -1 <= chi <= 1:
+            return self._D() @ self._B() @ delta_element
+
+        else:
+            return None
+
+
+    def force_chi(self, delta, chi):
+        '''
+        Internal force in chi coordinate
+
+        :param delta: (np.array) Displacement of the nodes of the element
+        :param chi: (float) Coordinate in chi
+        :return: (np.array) Internal force
+        '''
+
+        # The vector of displacements of the nodes of the element is obtained
+        delta_element = self.delta_element(delta)
+
+        if -1 <= chi <= 1:
+            return self._D() @ self._B() @ delta_element * self.A
+
+        else:
+            return None
+
 
     def info(self):
         '''

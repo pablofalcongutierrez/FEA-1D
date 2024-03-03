@@ -392,14 +392,73 @@ class Model:
             # The element is obtained
             e = self._obtain_element(x)
 
-            # The vector of displacements of the nodes of the element is obtained
-            delta_element = e.delta_element(self.delta)
-            print("Se ha obtenido el desplazamiento en el elemento: ", e.n1.id_global, e.n2.id_global)
             # The displacement is obtained
             return e.u(self.delta, e.chi_in_x(x)).item()
 
         else:
             raise Exception("The model is not solved")
+
+
+    def epsilon_pos(self, x):
+        '''
+        The strain of a point is obtained
+
+        :param x: (float) Position in space in coordinate x
+        :return: (float) Strain
+        '''
+
+        # If the model is not solved, the strain is not calculated
+        if self.solved:
+            # The element is obtained
+            e = self._obtain_element(x)
+
+            # The strain is obtained
+            return e.epsilon_chi(self.delta, e.chi_in_x(x)).item()
+
+        else:
+            raise Exception("The model is not solved")
+
+
+    def sigma_pos(self, x):
+        '''
+        The stress of a point is obtained
+
+        :param x: (float) Position in space in coordinate x
+        :return: (float) Stress
+        '''
+
+        # If the model is not solved, the stress is not calculated
+        if self.solved:
+            # The element is obtained
+            e = self._obtain_element(x)
+
+            # The stress is obtained
+            return e.sigma_chi(self.delta, e.chi_in_x(x)).item()
+
+        else:
+            raise Exception("The model is not solved")
+
+
+    def force_pos(self, x):
+        '''
+        The force of a point is obtained
+
+        :param x: (float) Position in space in coordinate x
+        :return: (float) Force
+        '''
+
+        # If the model is not solved, the force is not calculated
+        if self.solved:
+            # The element is obtained
+            e = self._obtain_element(x)
+
+            # The force is obtained
+            return e.force_chi(self.delta, e.chi_in_x(x)).item()
+
+        else:
+            raise Exception("The model is not solved")
+
+
 
 
 
