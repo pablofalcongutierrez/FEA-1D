@@ -243,12 +243,16 @@ class Model:
 
             # If the node already exists, it is not added but the node is obtained to add the element
             if self.bool_created_node(x):
-                n = n2
+                n = self.created_node(x)
+
+            # If the node does not exist, it is added
             else:
                 if x == n1.x:
                     n = self.add_node(x, n1.F, n1.u)
+
                 elif x == n2.x:
                     n = self.add_node(x, n2.F, n2.u)
+
                 else:
                     n = self.add_node(x)
 
@@ -281,6 +285,18 @@ class Model:
                 return True
 
         return False
+
+    def created_node(self, x):
+        """
+        Search a node in the list of nodes created
+
+        :param x: (float) Position in space in coordinate x
+        :return:
+        """
+        for id, node in self.nodes.items():
+            if node == x:
+                return node
+        return None
 
 
 
@@ -363,6 +379,48 @@ class Model:
 
                 self.f_G_cc[i] = displacements_imposed[i]
 
+    def delta_pos(self, x):
+        '''
+        The displacement of a point is obtained
+
+        :param x: (float) Position in space in coordinate x
+        :return: (float) Displacement
+        '''
+
+        # If the model is not solved, the displacement is not calculated
+        if self.solved:
+            # The element is obtained
+            e = self._obtain_element(x)
+
+            # The vector of displacements of the nodes of the element is obtained
+            delta_element = e.delta_element(self.delta)
+            print("Se ha obtenido el desplazamiento en el elemento: ", e.n1.id_global, e.n2.id_global)
+            # The displacement is obtained
+            return e.u(self.delta, e.chi_in_x(x)).item()
+
+        else:
+            raise Exception("The model is not solved")
+
+
+
+
+
+    def _obtain_element(self, x):
+        '''
+        The element that contains a point is obtained
+
+        :param x: (float) Position in space in coordinate x
+        :return: (Element) Element
+        '''
+
+        # The elements are traversed
+        for id, e in self.elements.items():
+
+            # If the point is between the nodes of the element, the element is returned
+            if e.n1.x <= x <= e.n2.x:
+                return e
+
+        return None
 
 
     def Solve(self):
@@ -384,14 +442,22 @@ class Model:
         # The displacements are calculated
         self.delta = np.linalg.solve(self.K_G_cc, self.f_G_cc)
 
+        # The reactions are calculated
+        self.reactions = self.K_G @ self.delta - self.f_G
+
+        # Print the reactions
+        # print("Reactions")
+        # print(self.reactions)
+        # print()
+
         # print the stiffness matrix
-        print(self.K_G_cc)
+        # print(self.K_G_cc)
 
         # print the load vector
-        print(self.f_G_cc)
+        # print(self.f_G_cc)
 
         # print the displacements
-        print(self.delta)
+        # print(self.delta)
 
 
         # The model is solved
@@ -428,7 +494,7 @@ class Model:
         print()
         print("\t\tELEMENTS")
         for id, element in self.elements.items():
-            print("\t\t\t· Element: ", element.n1.id_global, element.n2.id_global, " E: ", element.E, " A: ", element.A, " n_x: ", element.n_x)
+            print("\t\t\t· Element: ", element.n1.id_global, element.n2.id_global, " E: ", element.E, " A: ", element.A, " n_x: ", element.n_x, " L: ", element.L)
 
         print()
         print("Status of the model")

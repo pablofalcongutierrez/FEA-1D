@@ -35,6 +35,16 @@ class element_1D_LINEAR:
         # Node identifier
         self.id = id
 
+    def delta_element(self, delta):
+        '''
+        Vector of the displacements of the element
+
+        :param delta: (np.array) Displacement of the nodes
+        :return: (np.array) Displacement of the element
+        '''
+
+        return np.array([delta[self.n1.id_global], delta[self.n2.id_global]])
+
     def chi_in_x(self, x):
         '''
         Coordinates transformation from x to chi
@@ -150,15 +160,25 @@ class element_1D_LINEAR:
         return 1 * f(1/np.sqrt(3)) + 1 * f(-1/np.sqrt(3))
 
 
-    def u(self, _delta, chi):
+    def u(self, delta, chi):
         '''
         Displacement in chi coordinate
 
+        :param _delta: (np.array) Displacement of the nodes of the element
+        :param chi: (float) Coordinate in chi
         :return: (np.array) Displacement
         '''
 
-        if -1 < chi <= 1:
-            return self._N(chi) @ _delta
+        print("delta total:")
+        print(delta)
+        print()
+
+        # The vector of displacements of the nodes of the element is obtained
+        delta_element = self.delta_element(delta)
+
+        if -1 <= chi <= 1:
+            return self._N(chi) @ delta_element
+
         else:
             return 0
 

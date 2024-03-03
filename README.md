@@ -17,27 +17,24 @@ structural problems.
   - [x] Linear
   - [ ] Quadratic
 
-- [ ] **Boundary Conditions:**
+- [x] **Boundary Conditions:**
     - [x] Define Joints
-    - [ ] Define Displacements:
-    - [ ] Define Forces
+    - [x] Define Displacements
+    - [x] Define Forces
 
 - [ ] **Mesh Generation:**
   - [ ] Limit the number of elements
-  - [ ] Limit the maximum length of the elements
+  - [x] Limit the maximum length of the elements
 
 - [ ] **Material Properties:**
   - [x] Posibility to define the properties as a constant
   - [ ] Posibility to define the properties as a function
 
 - [ ] **Loads:**
-  - [ ] Define punctual loads on the nodes
+  - [x] Define punctual loads on the nodes
   - [ ] Define distributed loads on the elements:
     - [x] Constant
     - [ ] Linear
-
-- [ ] **Solver:**
-  - [ ] Static Analysis
 
 - [ ] **Post-Processing:**
   - [ ] Plot displacements
