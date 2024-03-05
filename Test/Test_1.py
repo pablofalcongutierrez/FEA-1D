@@ -25,7 +25,7 @@ model.add_beam([1, 2], material, section, n_x)
 element_size = 10   # Element size [mm]
 model.mesh(element_size)
 
-model.solve()
+model.Solve()
 
 list_x = []
 list_delta = []
